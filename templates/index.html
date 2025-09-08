@@ -3,4 +3,35 @@
 {% block content %}
 <h1>Bienvenido a mi Proyecto Flask</h1>
 <p>Esta es la página principal.</p>
+
+<h2>Registrar datos en TXT / JSON / CSV</h2>
+
+<form action="{{ url_for('guardar_txt') }}" method="post">
+  <h3>Guardar en TXT</h3>
+  <label>Nombre: <input name="nombre" required></label>
+  <label>Detalle: <input name="detalle"></label>
+  <button type="submit">Guardar TXT</button>
+</form>
+
+<form action="{{ url_for('guardar_json') }}" method="post">
+  <h3>Guardar en JSON</h3>
+  <label>Nombre: <input name="nombre" required></label>
+  <label>Detalle: <input name="detalle"></label>
+  <button type="submit">Guardar JSON</button>
+</form>
+
+<form action="{{ url_for('guardar_csv') }}" method="post">
+  <h3>Guardar en CSV</h3>
+  <label>Nombre: <input name="nombre" required></label>
+  <label>Detalle: <input name="detalle"></label>
+  <button type="submit">Guardar CSV</button>
+</form>
+
+<hr>
+<h2>Usuarios (SQLite via SQLAlchemy)</h2>
+<form action="{{ url_for('usuarios_agregar') }}" method="post">
+  <label>Nombre: <input name="nombre_usuario" required></label>
+  <label>Email: <input name="email_usuario" required></label>
+  <button type="submit">Agregar Usuario</button>
+</form>
 {% endblock %}

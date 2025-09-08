@@ -1,3 +1,4 @@
+from pathlib import Path
 from inventario import Inventario, Producto
 
 def menu():
@@ -11,40 +12,54 @@ def menu():
             print("4. Buscar producto por nombre")
             print("5. Mostrar todos los productos")
             print("6. Salir")
-            opcion = input("Seleccione una opción: ")
+            opcion = input("Seleccione una opción: ").strip()
 
             if opcion == "1":
-                id = int(input("ID: "))
-                nombre = input("Nombre: ")
-                cantidad = int(input("Cantidad: "))
-                precio = float(input("Precio: "))
+                try:
+                    id = int(input("ID: "))
+                    nombre = input("Nombre: ").strip()
+                    cantidad = int(input("Cantidad: "))
+                    precio = float(input("Precio: "))
+                except Exception:
+                    print("Datos inválidos.")
+                    continue
                 producto = Producto(id, nombre, cantidad, precio)
                 ok = inventario.agregar_producto(producto)
                 print("Producto agregado." if ok else "ID ya existe. No se agregó.")
             elif opcion == "2":
-                id = int(input("ID del producto a eliminar: "))
+                try:
+                    id = int(input("ID del producto a eliminar: "))
+                except Exception:
+                    print("ID inválido.")
+                    continue
                 ok = inventario.eliminar_producto(id)
                 print("Producto eliminado." if ok else "No existe el ID.")
             elif opcion == "3":
-                id = int(input("ID del producto a actualizar: "))
-                cantidad = input("Nueva cantidad (enter para mantener): ")
-                precio = input("Nuevo precio (enter para mantener): ")
-                cantidad_val = int(cantidad) if cantidad.strip() != "" else None
-                precio_val = float(precio) if precio.strip() != "" else None
+                try:
+                    id = int(input("ID del producto a actualizar: "))
+                except Exception:
+                    print("ID inválido.")
+                    continue
+                cantidad = input("Nueva cantidad (enter para mantener): ").strip()
+                precio = input("Nuevo precio (enter para mantener): ").strip()
+                cantidad_val = int(cantidad) if cantidad != "" else None
+                precio_val = float(precio) if precio != "" else None
                 ok = inventario.actualizar_producto(id, cantidad_val, precio_val)
                 print("Producto actualizado." if ok else "No existe el ID.")
             elif opcion == "4":
-                nombre = input("Nombre a buscar: ")
+                nombre = input("Nombre a buscar: ").strip()
                 productos = inventario.buscar_por_nombre(nombre)
-                for p in productos:
-                    print(p)
-                if not productos:
+                if productos:
+                    for p in productos:
+                        print(p)
+                else:
                     print("No se encontraron productos.")
             elif opcion == "5":
                 productos = inventario.mostrar_todos()
-                for p in productos:
-                    print(p)
-                if not productos:
+                if productos:
+                    for p in productos:
+                        print(p)
+                else:
                     print("Inventario vacío.")
             elif opcion == "6":
                 print("Saliendo...")

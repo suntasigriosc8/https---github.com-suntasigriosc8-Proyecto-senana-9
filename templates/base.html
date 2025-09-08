@@ -1,22 +1,24 @@
 <!doctype html>
 <html lang="es">
 <head>
-    <meta charset="utf-8">
-    <title>{% block title %}Inventario{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background: #f2f2f2; }
-    </style>
+  <meta charset="utf-8">
+  <title>{% block title %}Mi Proyecto{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+  <header>
+    <h1>Gestión - Persistencia</h1>
     <nav>
-        <a href="{{ url_for('productos') }}">Productos</a> |
-        <a href="{{ url_for('about') }}">Acerca</a>
+      <a href="{{ url_for('index') }}">Inicio</a> |
+      <a href="{{ url_for('leer_txt') }}">TXT</a> |
+      <a href="{{ url_for('leer_json') }}">JSON</a> |
+      <a href="{{ url_for('leer_csv') }}">CSV</a> |
+      <a href="{{ url_for('usuarios') }}">Usuarios (SQLite)</a>
     </nav>
     <hr>
+  </header>
+  <main>
     {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

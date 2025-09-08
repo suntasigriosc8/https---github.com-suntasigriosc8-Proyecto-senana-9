@@ -1,12 +1,7 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-}
-nav a {
-    margin-right: 10px;
-    text-decoration: none;
-    color: #333;
-}
-nav a:hover {
-    text-decoration: underline;
-}
+body { font-family: Arial, sans-serif; margin: 16px; }
+header h1 { margin: 0; }
+nav a { margin-right: 8px; text-decoration: none; color: #0366d6; }
+nav a:hover { text-decoration: underline; }
+form { margin-bottom: 12px; }
+label { display: inline-block; margin-right: 8px; }
+button { margin-left: 8px; }
