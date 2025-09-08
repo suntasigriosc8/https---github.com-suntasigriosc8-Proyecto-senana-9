@@ -1,18 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Mi Proyecto Flask{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="utf-8">
+    <title>{% block title %}Inventario{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background: #f2f2f2; }
+    </style>
 </head>
 <body>
     <nav>
-        <a href="{{ url_for('index') }}">Inicio</a> |
-        <a href="{{ url_for('about') }}">Acerca de</a>
+        <a href="{{ url_for('productos') }}">Productos</a> |
+        <a href="{{ url_for('about') }}">Acerca</a>
     </nav>
     <hr>
-    <div>
-        {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
 </body>
 </html>

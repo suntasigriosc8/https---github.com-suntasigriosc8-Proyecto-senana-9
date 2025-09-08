@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
+from inventario import Inventario, Producto
 import sqlite3
 DATABASE = 'database/inventario.db'
 
@@ -8,18 +9,31 @@ def get_db():
     return conn
 
 app = Flask(__name__)
+inv = Inventario()
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return redirect(url_for('productos'))
 
-@app.route('/about')
+@app.route("/productos")
+def productos():
+    items = inv.mostrar_todos()
+    return render_template("productos.html", productos=items)
+
+@app.route("/about")
 def about():
-    return render_template('about.html')
+    return render_template("about.html")
 
-@app.route('/usuarios/<nombre>')
-def usuarios(nombre):
-    return f"hola, {nombre}!"
+# API simple para agregar producto desde formulario (si se desea)
+@app.route("/productos/agregar", methods=["POST"])
+def agregar_producto():
+    data = request.form
+    try:
+        producto = Producto(int(data["id"]), data["nombre"], int(data["cantidad"]), float(data["precio"]))
+    except Exception:
+        return "Datos inválidos", 400
+    ok = inv.agregar_producto(producto)
+    return redirect(url_for('productos'))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
