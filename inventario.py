@@ -7,7 +7,7 @@ DB_PATH = Path(__file__).parent / "inventario.db"
 
 @dataclass
 class Producto:
-    id: int
+    id: Optional[int]
     nombre: str
     cantidad: int
     precio: float
@@ -16,8 +16,10 @@ class Producto:
     def from_row(cls, row):
         return cls(id=row["id"], nombre=row["nombre"], cantidad=row["cantidad"], precio=row["precio"])
 
-    def to_tuple(self):
-        return (self.id, self.nombre, self.cantidad, self.precio)
+    def to_tuple(self, include_id=False):
+        if include_id:
+            return (self.id, self.nombre, self.cantidad, self.precio)
+        return (self.nombre, self.cantidad, self.precio)
 
     def __repr__(self):
         return f"Producto(id={self.id}, nombre='{self.nombre}', cantidad={self.cantidad}, precio={self.precio})"
@@ -36,7 +38,7 @@ class Inventario:
         cur = self.conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS productos (
-                id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT NOT NULL,
                 cantidad INTEGER NOT NULL,
                 precio REAL NOT NULL
@@ -51,13 +53,21 @@ class Inventario:
         self._productos = {row["id"]: Producto.from_row(row) for row in rows}
 
     def agregar_producto(self, producto: Producto) -> bool:
-        if producto.id in self._productos:
-            return False
         cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO productos (id, nombre, cantidad, precio) VALUES (?, ?, ?, ?)",
-            producto.to_tuple()
-        )
+        # si se proporciona id, verificar existencia
+        if producto.id is not None:
+            if producto.id in self._productos:
+                return False
+            cur.execute(
+                "INSERT INTO productos (id, nombre, cantidad, precio) VALUES (?, ?, ?, ?)",
+                producto.to_tuple(include_id=True)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO productos (nombre, cantidad, precio) VALUES (?, ?, ?)",
+                producto.to_tuple(include_id=False)
+            )
+            producto.id = cur.lastrowid
         self.conn.commit()
         self._productos[producto.id] = producto
         return True
@@ -71,15 +81,19 @@ class Inventario:
         del self._productos[id]
         return True
 
-    def actualizar_producto(self, id: int, cantidad: Optional[int] = None, precio: Optional[float] = None) -> bool:
+    def actualizar_producto(self, id: int, nombre: Optional[str] = None,
+                           cantidad: Optional[int] = None, precio: Optional[float] = None) -> bool:
         if id not in self._productos:
             return False
         producto = self._productos[id]
+        new_nombre = nombre if nombre is not None else producto.nombre
         new_cantidad = cantidad if cantidad is not None else producto.cantidad
         new_precio = precio if precio is not None else producto.precio
         cur = self.conn.cursor()
-        cur.execute("UPDATE productos SET cantidad = ?, precio = ? WHERE id = ?", (new_cantidad, new_precio, id))
+        cur.execute("UPDATE productos SET nombre = ?, cantidad = ?, precio = ? WHERE id = ?",
+                    (new_nombre, new_cantidad, new_precio, id))
         self.conn.commit()
+        producto.nombre = new_nombre
         producto.cantidad = new_cantidad
         producto.precio = new_precio
         return True

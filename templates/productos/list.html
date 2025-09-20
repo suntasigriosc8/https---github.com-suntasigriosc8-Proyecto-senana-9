@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Productos{% endblock %}
+
+{% block content %}
+<form method="get" action="{{ url_for('lista producto') }}" class="form-inline">
+  <input type="text" name="q" placeholder="Buscar por nombre" value="{{ q or '' }}">
+  <button type="submit" class="btn">Buscar</button>
+  <a class ="btn btn-primary" href="{{ url_for('crear producto') }}">nuevo</a>
+</form>
+
+  {% if products %}
+    <h1> Ver si ingresa</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Nombre</th><th>Contidad</th><th>Precio</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.nombre }}</td>
+          <td>{{ p.cantidad }}</td>
+          <td>{{ "%.2f"|format(p.precio) }}</td>
+          <td>
+            <a class="bnt bnt-small" href="{{ url_for('editar_producto', id=p.id) }}">Editar</a> |
+            <form method="post" action="{{ url_for('eliminar producto', id=p.id) }}" style="display:inline">
+              onsubmit="return confirm('¿Eliminar {{p.nombre}}?');">
+              <button type="submit" class="btn btn-small btn-danger">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay productos en el inventario.</p>
+  {% endif %}
+{% endblock %}

@@ -2,23 +2,28 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Mi Proyecto{% endblock %}</title>
+  <title>{% block title %}{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
   <header>
-    <h1>Gestión - Persistencia</h1>
+    <h1> Venta por catalogo</h1>
     <nav>
       <a href="{{ url_for('index') }}">Inicio</a> |
-      <a href="{{ url_for('leer_txt') }}">TXT</a> |
-      <a href="{{ url_for('leer_json') }}">JSON</a> |
-      <a href="{{ url_for('leer_csv') }}">CSV</a> |
-      <a href="{{ url_for('usuarios') }}">Usuarios (SQLite)</a>
+      <a href="{{ url_for('about') }}">Acerca</a>
+      <a href="{{ url_for('listar_productos') }}">Productos</a> |
+      <a>Clientes</a>
+      <a>Inventario</a>
+      <a>Ventas</a>
+     
     </nav>
     <hr>
   </header>
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <small>© {{ 2025 }} Derechos de autor</small>
+  </footer>
+  
+   {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,143 +1,84 @@
-import os
-import json
-import csv
-from flask import Flask, render_template, request, redirect, url_for
-from pathlib import Path
+import logging
+from flask import Flask, render_template, request, redirect, url_for, flash
+from datetime import datetime
+from forms import productoforms
+from inventario import Inventario, Producto
 
-# SQLAlchemy
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import declarative_base, sessionmaker
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s: %(message)s")
+app= Flask(__name__, template_folder="templates", static_folder="static")
+app.config['SECRET_KEY'] = "mi_clave_secreta"
 
-BASE_DIR = Path(__file__).parent
-DATOS_DIR = BASE_DIR / "datos"
-DB_DIR = BASE_DIR / "database"
-DB_DIR.mkdir(exist_ok=True)
-DATOS_DIR.mkdir(exist_ok=True)
+# inicializar inventario
+try:
+    inv = Inventario()
+except Exception:
+    app.logger.exception("Error inicializando Inventario (revisa inventario.py / inventario.db):")
+    inv = None
 
-TXT_PATH = DATOS_DIR / "datos.txt"
-JSON_PATH = DATOS_DIR / "datos.json"
-CSV_PATH = DATOS_DIR / "datos.csv"
-SQLITE_PATH = DB_DIR / "usuarios.db"
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow}
 
-# Configuración SQLAlchemy
-engine = create_engine(f"sqlite:///{SQLITE_PATH}", echo=False, future=True)
-Base = declarative_base()
-SessionLocal = sessionmaker(bind=engine)
-
-class Usuario(Base):
-    __tablename__ = "usuarios"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    nombre = Column(String, nullable=False)
-    email = Column(String, nullable=False, unique=True)
-
-Base.metadata.create_all(bind=engine)
-
-app = Flask(__name__, template_folder="templates", static_folder="static")
-
-# Rutas principales
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html', title="Inicio")
 
-# TXT
-@app.route("/guardar_txt", methods=["POST"])
-def guardar_txt():
-    nombre = request.form.get("nombre", "").strip()
-    detalle = request.form.get("detalle", "").strip()
-    if not nombre:
-        return "Nombre requerido", 400
-    with open(TXT_PATH, "a", encoding="utf-8") as f:
-        f.write(f"{nombre} | {detalle}\n")
-    return redirect(url_for("leer_txt"))
+@app.route('/productos', methods=['GET', 'POST'])
+def listar_productos():
+    q = request.args.get('q', '').strip()
+    productos = inv.buscar_por_nombre(q) if q and inv else (inv.mostrar_todos() if inv else [])
+    return render_template('productos/index.html', title="Productos", productos=productos, q=q)
 
-@app.route("/leer_txt")
-def leer_txt():
-    contenido = []
-    if TXT_PATH.exists():
-        with open(TXT_PATH, "r", encoding="utf-8") as f:
-            contenido = [line.strip() for line in f.readlines()]
-    return render_template("resultado.html", titulo="Contenido TXT", items=contenido)
+@app.route('/productos/agregar', methods=['GET', 'POST'])
+def agregar_producto():
+    form = productoforms()
+    if form.validate_on_submit():
+        nombre = form.nombre.data
+        cantidad = form.cantidad.data
+        precio = float(form.precio.data)
+        producto = Producto(id=None, nombre=nombre, cantidad=cantidad, precio=precio)
+        ok = inv.agregar_producto(producto) if inv else False
+        flash('Producto agregado.' if ok else 'Error al agregar producto.', 'success' if ok else 'danger')
+        return redirect(url_for('listar_productos'))
+    return render_template('productos/agregar_producto.html', title="Agregar Producto", form=form)
 
-# JSON
-@app.route("/guardar_json", methods=["POST"])
-def guardar_json():
-    item = {"nombre": request.form.get("nombre","").strip(), "detalle": request.form.get("detalle","").strip()}
-    if item["nombre"] == "":
-        return "Nombre requerido", 400
-    data = []
-    if JSON_PATH.exists():
-        with open(JSON_PATH, "r", encoding="utf-8") as f:
-            try:
-                data = json.load(f)
-            except Exception:
-                data = []
-    data.append(item)
-    with open(JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    return redirect(url_for("leer_json"))
+@app.route('/productos/editar/<int:id>', methods=['GET', 'POST'])
+def editar_producto(id):
+    if not inv:
+        flash('Inventario no disponible.', 'danger')
+        return redirect(url_for('listar_productos'))
+    producto = inv.obtener(id)
+    if not producto:
+        flash('Producto no encontrado.', 'danger')
+        return redirect(url_for('listar_productos'))
+    form = productoforms()
+    if request.method == 'GET':
+        form.nombre.data = producto.nombre
+        form.cantidad.data = producto.cantidad
+        form.precio.data = producto.precio
+    if form.validate_on_submit():
+        inv.actualizar_producto(id, nombre=form.nombre.data, cantidad=form.cantidad.data, precio=float(form.precio.data))
+        flash('Producto actualizado.', 'success')
+        return redirect(url_for('listar_productos'))
+    return render_template('productos/editar_producto.html', title="Editar Producto", form=form, producto=producto)
 
-@app.route("/leer_json")
-def leer_json():
-    data = []
-    if JSON_PATH.exists():
-        with open(JSON_PATH, "r", encoding="utf-8") as f:
-            try:
-                data = json.load(f)
-            except Exception:
-                data = []
-    return render_template("resultado.html", titulo="Contenido JSON", items=[f'{d.get("nombre")} - {d.get("detalle")}' for d in data])
+@app.route('/productos/eliminar/<int:id>', methods=['POST'])
+def eliminar_producto(id):
+    ok = inv.eliminar_producto(id) if inv else False
+    flash('Producto eliminado.' if ok else 'No se encontró el producto.', 'success' if ok else 'danger')
+    return redirect(url_for('listar_productos'))
 
-# CSV
-@app.route("/guardar_csv", methods=["POST"])
-def guardar_csv():
-    nombre = request.form.get("nombre","").strip()
-    detalle = request.form.get("detalle","").strip()
-    if nombre == "":
-        return "Nombre requerido", 400
-    file_exists = CSV_PATH.exists()
-    with open(CSV_PATH, "a", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
-        if not file_exists:
-            writer.writerow(["nombre","detalle"])
-        writer.writerow([nombre, detalle])
-    return redirect(url_for("leer_csv"))
+@app.route('/about/')
+def about():
+    return render_template('about.html', title="About")
 
-@app.route("/leer_csv")
-def leer_csv():
-    rows = []
-    if CSV_PATH.exists():
-        with open(CSV_PATH, "r", encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            rows = [", ".join(row) for row in reader]
-    return render_template("resultado.html", titulo="Contenido CSV", items=rows)
-
-# SQLite (Usuarios) usando SQLAlchemy
-@app.route("/usuarios")
-def usuarios():
-    session = SessionLocal()
+@app.errorhandler(500)
+def internal_error(error):
+    app.logger.exception("500 Internal Server Error:")
     try:
-        usuarios = session.query(Usuario).all()
-        return render_template("resultado.html", titulo="Usuarios (SQLite)", items=[f"{u.id} | {u.nombre} | {u.email}" for u in usuarios])
-    finally:
-        session.close()
+        return render_template("500.html"), 500
+    except Exception:
+        return "Error interno del servidor. Revisa los logs en la consola.", 500
 
-@app.route("/usuarios/agregar", methods=["POST"])
-def usuarios_agregar():
-    nombre = request.form.get("nombre_usuario","").strip()
-    email = request.form.get("email_usuario","").strip()
-    if not nombre or not email:
-        return "Nombre y email requeridos", 400
-    session = SessionLocal()
-    try:
-        # comprobar duplicado por email
-        if session.query(Usuario).filter_by(email=email).first():
-            return "Email ya existe", 400
-        u = Usuario(nombre=nombre, email=email)
-        session.add(u)
-        session.commit()
-    finally:
-        session.close()
-    return redirect(url_for("usuarios"))
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
