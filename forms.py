@@ -2,7 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, DecimalField, SubmitField
 from wtforms.validators import DataRequired, NumberRange, Length, ValidationError
 
-class productoforms(FlaskForm):
+# Formulario para agregar/editar productos
+class ProductoForm(FlaskForm):
     nombre = StringField(
         "Nombre",
         validators=[
@@ -28,8 +29,8 @@ class productoforms(FlaskForm):
     )
     submit = SubmitField("Guardar")
 
+    # Validación personalizada del campo nombre
     def validate_nombre(self, field):
-        # normalizar espacios y proteger contra None
         if field.data is None or str(field.data).strip() == "":
             raise ValidationError("El nombre no puede quedar vacío.")
         field.data = str(field.data).strip()
