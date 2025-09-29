@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Crear Producto{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Crear Producto</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.nombre.label(class="form-label") }}
+            {{ form.nombre(class="form-control", placeholder="Nombre del producto") }}
+            {% if form.nombre.errors %}
+                <div class="text-danger">
+                    {% for error in form.nombre.errors %}
+                        <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.precio.label(class="form-label") }}
+            {{ form.precio(class="form-control", placeholder="Precio del producto") }}
+            {% if form.precio.errors %}
+                <div class="text-danger">
+                    {% for error in form.precio.errors %}
+                        <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.stock.label(class="form-label") }}
+            {{ form.stock(class="form-control", placeholder="Stock del producto") }}
+            {% if form.stock.errors %}
+                <div class="text-danger">
+                    {% for error in form.stock.errors %}
+                        <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.imagen.label(class="form-label") }}
+            {{ form.imagen(class="form-control", type="file") }}
+        </div>
+
+        <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

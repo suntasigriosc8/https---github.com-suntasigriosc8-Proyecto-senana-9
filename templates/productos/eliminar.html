@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Eliminar Producto{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Eliminar Producto</h1>
+
+    <div class="alert alert-warning">
+        ¿Estás seguro de que deseas eliminar el producto <strong>{{ producto.nombre }}</strong>?
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    {% if producto.imagen %}
+                        <img
+                            src="{{ url_for('static', filename='images/' + producto.imagen) }}"
+                            alt="{{ producto.nombre }}"
+                            class="img-fluid"
+                        >
+                    {% else %}
+                        <img
+                            src="{{ url_for('static', filename='images/default.jpg') }}"
+                            alt="Sin imagen"
+                            class="img-fluid"
+                        >
+                    {% endif %}
+                </div>
+                <div class="col-md-8">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text">Precio: ${{ "%.2f"|format(producto.precio) }}</p>
+                    <p class="card-text">Stock: {{ producto.stock }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post">
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

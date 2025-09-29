@@ -1,13 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Editar Producto{% endblock %}
 {% block content %}
-<h2>Editar Producto - {{ producto.nombre }}</h2>
-<form method="post">
-  {{ form.hidden_tag() }}
-  <p>{{ form.nombre.label }} {{ form.nombre(size=40) }}</p>
-  <p>{{ form.cantidad.label }} {{ form.cantidad() }}</p>
-  <p>{{ form.precio.label }} {{ form.precio() }}</p>
-  <p>{{ form.submit() }}</p>
-</form>
-<a href="{{ url_for('listar_productos') }}">Volver a la lista</a>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Editar Producto - {{ producto.nombre }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.nombre.label(class="form-label") }}
+                {{ form.nombre(class="form-control", placeholder="Nombre del producto", value=producto.nombre) }}
+            </div>
+            <div class="mb-3">
+                {{ form.cantidad.label(class="form-label") }}
+                {{ form.cantidad(class="form-control", placeholder="Cantidad en stock", value=producto.cantidad) }}
+            </div>
+            <div class="mb-3">
+                {{ form.precio.label(class="form-label") }}
+                {{ form.precio(class="form-control", placeholder="Precio", value=producto.precio) }}
+            </div>
+            <div class="mb-3">
+                {{ form.imagen.label(class="form-label") }}
+                {{ form.imagen(class="form-control", type="file") }}
+                {% if producto.imagen %}
+                <div class="mt-2">
+                    <img src="{{ url_for('static', filename='images/' + producto.imagen) }}" alt="{{ producto.nombre }}" style="max-width: 200px; max-height: 200px;">
+                </div>
+                {% endif %}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+        <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary mt-3">Volver a la lista</a>
+    </div>
+</div>
 {% endblock %}

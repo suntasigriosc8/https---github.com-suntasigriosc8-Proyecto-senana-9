@@ -1,49 +1,30 @@
 {% extends "base.html" %}
 {% block title %}Agregar Producto{% endblock %}
 {% block content %}
-<h2>Agregar Producto</h2>
-<form method="post">
-  {{ form.hidden_tag() }}
-  <p>{{ form.nombre.label }} {{ form.nombre(size=40) }}</p>
-  <p>{{ form.cantidad.label }} {{ form.cantidad() }}</p>
-  <p>{{ form.precio.label }} {{ form.precio() }}</p>
-  <p>{{ form.submit() }}</p>
-</form>
-<a href="{{ url_for('listar_productos') }}">Volver a la lista</a>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Agregar Producto</h2>
+        <form method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.nombre.label(class="form-label") }}
+                {{ form.nombre(class="form-control", placeholder="Nombre del producto") }}
+            </div>
+            <div class="mb-3">
+                {{ form.cantidad.label(class="form-label") }}
+                {{ form.cantidad(class="form-control", placeholder="Cantidad en stock") }}
+            </div>
+            <div class="mb-3">
+                {{ form.precio.label(class="form-label") }}
+                {{ form.precio(class="form-control", placeholder="Precio") }}
+            </div>
+            <div class="mb-3">
+                {{ form.imagen.label(class="form-label") }}
+                {{ form.imagen(class="form-control", type="file") }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+        <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary mt-3">Volver a la lista</a>
+    </div>
+</div>
 {% endblock %}
-from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, DecimalField, SubmitField
-from wtforms.validators import DataRequired, NumberRange, Length, ValidationError
-
-class productoforms(FlaskForm):
-    nombre = StringField(
-        "Nombre",
-        validators=[
-            DataRequired(message="El nombre es obligatorio."),
-            Length(min=1, max=100, message="El nombre debe tener entre 1 y 100 caracteres.")
-        ]
-    )
-    cantidad = IntegerField(
-        "Cantidad",
-        validators=[
-            DataRequired(message="La cantidad es obligatoria."),
-            NumberRange(min=0, message="La cantidad debe ser 0 o mayor.")
-        ]
-    )
-    precio = DecimalField(
-        "Precio",
-        places=2,
-        rounding=None,
-        validators=[
-            DataRequired(message="El precio es obligatorio."),
-            NumberRange(min=0, message="El precio debe ser 0.00 o mayor.")
-        ]
-    )
-    submit = SubmitField("Guardar")
-
-    def validate_nombre(self, field):
-        # normalizar espacios y proteger contra None
-        if field.data is None or str(field.data).strip() == "":
-            raise ValidationError("El nombre no puede quedar vacío.")
-        field.data = str(field.data).strip()
-        
